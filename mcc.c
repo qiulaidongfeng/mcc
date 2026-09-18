@@ -355,7 +355,7 @@ static void mcc_pkts_acked(struct sock *sk, const struct ack_sample *sample)
 	}
 
 	/* ═══ Part 2: RTT 更新 + Ring Push ═══ */
-	if (rtt_us != 0) {
+	if (rtt_us > 0) {
 		if (ca->smoothed_rtt_us == 0)
 			ca->smoothed_rtt_us = rtt_us;
 		else
