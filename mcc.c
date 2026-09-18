@@ -31,7 +31,7 @@
 #include <linux/ktime.h>
 
 #define MCC_MIN_BDP             128
-#define MCC_BG_RTT_DEFAULT_US   (5 * USEC_PER_SEC)
+#define MCC_BG_RTT_DEFAULT_US   (1 * USEC_PER_SEC)
 /* V2.0: periodic probe‑rtt interval changed to 10s */
 #define MCC_RTT_UPDATE_INT_US   (10 * USEC_PER_SEC)
 /* MCC_STOP state force probe‑rtt after 2s */
