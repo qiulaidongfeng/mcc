@@ -58,9 +58,9 @@ struct mcc {
 	u64 last_new_bg_rtt_time;
 	u64 last_probe_rtt_start;
 	u64 last_stop_start;         /* record enter MCC_STOP timestamp */
-	u32 smoothed_rtt_us;
-	u32 backGround_rtt_us;
-    u32 old_backGround_rtt_us;   /* V2.0 snapshot: for probe‑rtt timeout timer */
+	u64 smoothed_rtt_us;
+	u64 backGround_rtt_us;
+    u64 old_backGround_rtt_us;   /* V2.0 snapshot: for probe‑rtt timeout timer */
 	u32 max_datagram_size;
 	u32 ack_count;
 	u16 bdp_limit_factor;
@@ -248,7 +248,7 @@ static void mcc_release(struct sock *sk)
 			loss_pct = div_u64(retrans_segs * 100, total_segs);
 
 		printk(KERN_INFO
-		       "MCC_CLOSE: mcc_srtt=%uus kernel_srtt=%uus rtt_mdev=%uus rtt_min=%uus bg_rtt=%uus total_segs=%llu retrans=%llu loss%%=%llu bdp_factor=%u state=%u\n kernal_delivery_rate=%llu\n",
+		       "MCC_CLOSE: mcc_srtt=%lluus kernel_srtt=%uus rtt_mdev=%uus rtt_min=%uus bg_rtt=%lluus total_segs=%llu retrans=%llu loss%%=%llu bdp_factor=%u state=%u\n kernal_delivery_rate=%llu\n",
 		       ca->smoothed_rtt_us,
 		       tp->srtt_us >> 3,
 		       tp->mdev_us >> 2,
@@ -356,10 +356,14 @@ static void mcc_pkts_acked(struct sock *sk, const struct ack_sample *sample)
 
 	/* ═══ Part 2: RTT 更新 + Ring Push ═══ */
 	if (rtt_us > 0) {
-		if (ca->smoothed_rtt_us == 0)
+		if (ca->smoothed_rtt_us == 0){
 			ca->smoothed_rtt_us = rtt_us;
-		else
-			ca->smoothed_rtt_us = (3 * ca->smoothed_rtt_us + rtt_us) / 4;
+		} else {
+			u64 tmp = ((uint64_t)3 * ca->smoothed_rtt_us + rtt_us) / 4;
+			if (tmp-(ca->smoothed_rtt_us)<ca->smoothed_rtt_us){	
+				ca->smoothed_rtt_us = tmp;
+			}
+		}
 
 		if (rtt_us < ca->backGround_rtt_us) {
 			ca->backGround_rtt_us = rtt_us;
