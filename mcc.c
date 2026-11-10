@@ -322,7 +322,7 @@ static void mcc_pkts_acked(struct sock *sk, const struct ack_sample *sample)
 	if (!ca)
 		return;
 
-    inflight_bytes = tcp_packets_in_flight(tp) * tp->mss_cache;
+    inflight_bytes = sample->in_flight;
     cwnd_bytes = ca->pacing_rate * ca->backGround_rtt_us / USEC_PER_SEC;
 	/* ═══ Part 1: 状态机检查 (r || 的核心判断) ═══ */
 	mcc_may_exit_probe_rtt(ca, now_ns, inflight_bytes, cwnd_bytes);
@@ -367,7 +367,7 @@ static void mcc_pkts_acked(struct sock *sk, const struct ack_sample *sample)
 		}
 	}
 
-	acked_bytes = max_t(u32, sample->pkts_acked, 1) * tp->mss_cache;
+	acked_bytes = sample->rs_delivered;
 	mcc_ack_ring_push(ca, acked_bytes, now_ns);
 
 	/* V2.0 ProbeRTT trigger conditions: OR branch */
